@@ -2,5 +2,7 @@
   {"time": "08:00", "train": "A線 1号", "destination": "東京"},
   {"time": "08:15", "train": "B線 2号", "destination": "大阪"},
   {"time": "08:30", "train": "A線 3号", "destination": "東京"},
-  {"time": "08:45", "train": "B線 4号", "destination": "大阪"}
+  {"time": "08:45", "train": "B線 4号", "destination": "大阪"},
+  {"time": "17:30", "train": "普通", "destination": "大阪"},
+  {"time": "17:45", "train": "急行", "destination": "大阪"}
 ]
