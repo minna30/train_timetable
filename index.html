@@ -4,44 +4,34 @@
 <meta charset="UTF-8">
 <title>駅発車案内</title>
 <style>
-body { font-family: Arial; background: #f0f0f0; color: #333; display: flex; justify-content: center; padding-top: 30px;}
-.container { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); min-width: 400px;}
+body { font-family: Arial; background: #f0f0f0; color: #333; padding: 30px; }
+.container { max-width: 800px; margin: auto; }
 h1 { text-align: center; color: #ff4081; }
-#currentTime { text-align: center; font-size: 1.2em; margin-bottom: 10px; color: #555; }
-.selects { display: flex; justify-content: space-between; margin-bottom: 10px; }
-.selects select { padding: 5px; }
-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+#currentTime { text-align: center; font-size: 1.2em; margin-bottom: 20px; color: #555; }
+.station-select { text-align: center; margin-bottom: 20px; }
+.station-select select { padding: 5px; font-size: 1em; }
+.timetable-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
 th, td { padding: 10px; text-align: center; border: 1px solid #ddd; }
 th { background-color: #ff4081; color: white; }
 tr:nth-child(even) { background-color: #f9f9f9; }
+.line-title { font-weight: bold; margin-top: 20px; text-align: left; color: #333; }
+.direction-title { font-weight: bold; margin-bottom: 5px; }
 </style>
 </head>
 <body>
 <div class="container">
   <h1>駅発車案内</h1>
   <div id="currentTime">現在時刻: --:--</div>
-  <div class="selects">
+  <div class="station-select">
     <select id="stationSelect"></select>
-    <select id="lineSelect"></select>
-    <select id="directionSelect">
-      <option value="上り">上り</option>
-      <option value="下り">下り</option>
-    </select>
   </div>
-  <table id="timetable">
-    <thead>
-      <tr><th>時間</th><th>列車</th><th>行き先</th></tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <div id="timetableContainer"></div>
 </div>
 
 <script>
 let stations = [];
 let timetable = [];
 let selectedStation = '';
-let selectedLine = '';
-let selectedDirection = '上り';
 
 function formatTime(date){
   const h = String(date.getHours()).padStart(2,'0');
@@ -50,53 +40,9 @@ function formatTime(date){
   return `${h}:${m}:${s}`;
 }
 
-function updateTimetable(){
+function updateCurrentTime(){
   const now = new Date();
   document.getElementById('currentTime').textContent = '現在時刻: ' + formatTime(now);
-  const tbody = document.querySelector('#timetable tbody');
-  tbody.innerHTML = '';
-  const currentMinutes = now.getHours()*60 + now.getMinutes();
-
-  const upcoming = timetable
-    .filter(d => d.line === selectedLine && d.direction === selectedDirection)
-    .filter(d => {
-      const [h,m] = d.time.split(':').map(Number);
-      return h*60+m >= currentMinutes;
-    })
-    .slice(0,2);
-
-  upcoming.forEach(d => {
-    const row = document.createElement('tr');
-    row.innerHTML = `<td>${d.time}</td><td>${d.train}</td><td>${d.destination}</td>`;
-    tbody.appendChild(row);
-  });
-}
-
-// 駅・路線選択初期化
-function populateSelects(){
-  const stationSelect = document.getElementById('stationSelect');
-  stations.forEach(s => {
-    const opt = document.createElement('option');
-    opt.value = s.station;
-    opt.textContent = s.station;
-    stationSelect.appendChild(opt);
-  });
-  selectedStation = stations[0].station;
-  loadTimetable(selectedStation);
-}
-
-function populateLineSelect(){
-  const lineSelect = document.getElementById('lineSelect');
-  lineSelect.innerHTML = '';
-  const stationLines = stations.find(s => s.station === selectedStation).lines;
-  stationLines.forEach(l => {
-    const opt = document.createElement('option');
-    opt.value = l;
-    opt.textContent = l;
-    lineSelect.appendChild(opt);
-  });
-  selectedLine = stationLines[0];
-  updateTimetable();
 }
 
 // 駅選択時に timetable をロード
@@ -106,32 +52,80 @@ function loadTimetable(stationName){
     .then(r => r.json())
     .then(data => {
       timetable = data;
-      populateLineSelect();
+      renderTimetable();
     });
 }
 
+// 発車案内を作る
+function renderTimetable(){
+  const container = document.getElementById('timetableContainer');
+  container.innerHTML = '';
+  const now = new Date();
+  const currentMinutes = now.getHours()*60 + now.getMinutes();
+
+  // 路線ごとに分ける
+  const lines = [...new Set(timetable.map(d => d.line))];
+  lines.forEach(line => {
+    const lineDiv = document.createElement('div');
+    lineDiv.innerHTML = `<div class="line-title">${line}</div>`;
+
+    ['上り','下り'].forEach(direction => {
+      const filtered = timetable
+        .filter(d => d.line === line && d.direction === direction)
+        .filter(d => {
+          const [h,m] = d.time.split(':').map(Number);
+          return h*60+m >= currentMinutes;
+        })
+        .slice(0,2); // 次の2本だけ
+
+      if(filtered.length === 0) return; // 無ければ表示しない
+
+      const table = document.createElement('table');
+      table.className = 'timetable-table';
+      const thead = document.createElement('thead');
+      thead.innerHTML = `<tr><th colspan="3" class="direction-title">${direction}</th></tr><tr><th>時間</th><th>列車</th><th>行き先</th></tr>`;
+      table.appendChild(thead);
+
+      const tbody = document.createElement('tbody');
+      filtered.forEach(d => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${d.time}</td><td>${d.train}</td><td>${d.destination}</td>`;
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+      lineDiv.appendChild(table);
+    });
+
+    container.appendChild(lineDiv);
+  });
+}
+
+// 駅選択初期化
+function populateStationSelect(){
+  const select = document.getElementById('stationSelect');
+  stations.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.station;
+    opt.textContent = s.station;
+    select.appendChild(opt);
+  });
+  selectedStation = stations[0].station;
+  loadTimetable(selectedStation);
+}
+
 // イベント
-document.getElementById('stationSelect').addEventListener('change', e => {
+document.getElementById('stationSelect').addEventListener('change', e=>{
   selectedStation = e.target.value;
   loadTimetable(selectedStation);
 });
 
-document.getElementById('lineSelect').addEventListener('change', e => {
-  selectedLine = e.target.value;
-  updateTimetable();
-});
-
-document.getElementById('directionSelect').addEventListener('change', e => {
-  selectedDirection = e.target.value;
-  updateTimetable();
-});
-
 // データ取得
-fetch('_station_data/stations.json').then(r=>r.json()).then(data=>{
+fetch('station_data/stations.json').then(r=>r.json()).then(data=>{
   stations = data;
-  populateSelects();
-  updateTimetable();
-  setInterval(updateTimetable, 1000);
+  populateStationSelect();
+  updateCurrentTime();
+  setInterval(updateCurrentTime,1000);
+  setInterval(renderTimetable,60000); // 1分ごとに更新
 });
 </script>
 </body>
