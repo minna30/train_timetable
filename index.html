@@ -4,17 +4,54 @@
 <meta charset="UTF-8">
 <title>次の2本発車案内</title>
 <style>
-  body { font-family: Arial; background: #f0f0f0; }
-  .container { max-width: 600px; margin: 50px auto; padding: 20px; background: white; border-radius: 10px; }
-  h1 { text-align: center; color: #ff4081; }
-  table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-  th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
-  th { background-color: #ff4081; color: white; }
-  tr:nth-child(even) { background-color: #f9f9f9; }
+  body {
+    background-color: #000; 
+    color: #fff;
+    font-family: 'Courier New', Courier, monospace;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  .board {
+    background-color: #111;
+    padding: 20px;
+    border: 5px solid #222;
+    border-radius: 10px;
+    box-shadow: 0 0 30px #ff0000;
+    min-width: 400px;
+    text-align: center;
+  }
+  h1 {
+    font-size: 1.5em;
+    margin-bottom: 20px;
+    color: #ff0;
+    text-shadow: 0 0 5px #ff0, 0 0 10px #ff0;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th, td {
+    padding: 10px;
+    text-align: center;
+    font-size: 1.2em;
+  }
+  th {
+    color: #0f0;
+    text-shadow: 0 0 5px #0f0;
+  }
+  td {
+    color: #fff;
+    text-shadow: 0 0 2px #fff;
+  }
+  tr:nth-child(odd) td {
+    text-shadow: 0 0 5px #ff0;
+  }
 </style>
 </head>
 <body>
-<div class="container">
+<div class="board">
   <h1>次の2本発車案内</h1>
   <table id="timetable">
     <thead>
@@ -33,29 +70,29 @@ function updateTimetable() {
   fetch('data/timetable.json')
     .then(res => res.json())
     .then(data => {
-      const tableBody = document.querySelector('#timetable tbody');
-      tableBody.innerHTML = '';
+      const tbody = document.querySelector('#timetable tbody');
+      tbody.innerHTML = '';
       const now = new Date();
-      const currentMinutes = now.getHours()*60 + now.getMinutes();
+      const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
-      // 発車済みを除く & 時刻順に並べる
       const upcoming = data
         .filter(d => {
-          const [h,m] = d.time.split(':').map(Number);
+          const [h, m] = d.time.split(':').map(Number);
           return h*60 + m >= currentMinutes;
         })
-        .slice(0,2); // 次の2本だけ
+        .slice(0,2); // 次の2本だけ表示
 
       upcoming.forEach(d => {
         const row = document.createElement('tr');
         row.innerHTML = `<td>${d.time}</td><td>${d.train}</td><td>${d.destination}</td>`;
-        tableBody.appendChild(row);
+        tbody.appendChild(row);
       });
     });
 }
 
-// 初回表示 & 1分ごとに更新
+// 初回表示
 updateTimetable();
+// 1分ごとに更新
 setInterval(updateTimetable, 60000);
 </script>
 </body>
