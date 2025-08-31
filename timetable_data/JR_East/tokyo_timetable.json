@@ -1,0 +1,6 @@
+[
+  {"line": "A線", "direction": "上り", "time": "08:00", "train": "A線1号", "destination": "品川"},
+  {"line": "A線", "direction": "下り", "time": "08:05", "train": "A線2号", "destination": "新宿"},
+  {"line": "B線", "direction": "上り", "time": "08:10", "train": "B線1号", "destination": "渋谷"},
+  {"line": "B線", "direction": "下り", "time": "08:15", "train": "B線2号", "destination": "池袋"}
+]

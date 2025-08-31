@@ -2,108 +2,137 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>次の2本発車案内</title>
+<title>駅発車案内</title>
 <style>
-  body {
-    background-color: #f0f0f0;
-    color: #333;
-    font-family: Arial, sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    padding-top: 50px;
-  }
-  .container {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-    min-width: 400px;
-  }
-  h1 {
-    text-align: center;
-    color: #ff4081;
-  }
-  #currentTime {
-    text-align: center;
-    font-size: 1.2em;
-    margin-bottom: 10px;
-    color: #555;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 10px;
-  }
-  th, td {
-    padding: 10px;
-    text-align: center;
-    border: 1px solid #ddd;
-  }
-  th {
-    background-color: #ff4081;
-    color: white;
-  }
-  tr:nth-child(even) {
-    background-color: #f9f9f9;
-  }
+body { font-family: Arial; background: #f0f0f0; color: #333; display: flex; justify-content: center; padding-top: 30px;}
+.container { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); min-width: 400px;}
+h1 { text-align: center; color: #ff4081; }
+#currentTime { text-align: center; font-size: 1.2em; margin-bottom: 10px; color: #555; }
+.selects { display: flex; justify-content: space-between; margin-bottom: 10px; }
+.selects select { padding: 5px; }
+table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+th, td { padding: 10px; text-align: center; border: 1px solid #ddd; }
+th { background-color: #ff4081; color: white; }
+tr:nth-child(even) { background-color: #f9f9f9; }
 </style>
 </head>
 <body>
 <div class="container">
-  <h1>次の2本発車案内</h1>
+  <h1>駅発車案内</h1>
   <div id="currentTime">現在時刻: --:--</div>
+  <div class="selects">
+    <select id="stationSelect"></select>
+    <select id="lineSelect"></select>
+    <select id="directionSelect">
+      <option value="上り">上り</option>
+      <option value="下り">下り</option>
+    </select>
+  </div>
   <table id="timetable">
     <thead>
-      <tr>
-        <th>時間</th>
-        <th>列車</th>
-        <th>行き先</th>
-      </tr>
+      <tr><th>時間</th><th>列車</th><th>行き先</th></tr>
     </thead>
     <tbody></tbody>
   </table>
 </div>
 
 <script>
-function formatTime(date) {
+let stations = [];
+let timetable = [];
+let selectedStation = '';
+let selectedLine = '';
+let selectedDirection = '上り';
+
+function formatTime(date){
   const h = String(date.getHours()).padStart(2,'0');
   const m = String(date.getMinutes()).padStart(2,'0');
   const s = String(date.getSeconds()).padStart(2,'0');
   return `${h}:${m}:${s}`;
 }
 
-function updateTimetable() {
-  // 現在時刻表示
+function updateTimetable(){
   const now = new Date();
   document.getElementById('currentTime').textContent = '現在時刻: ' + formatTime(now);
+  const tbody = document.querySelector('#timetable tbody');
+  tbody.innerHTML = '';
+  const currentMinutes = now.getHours()*60 + now.getMinutes();
 
-  fetch('data/timetable.json')
-    .then(res => res.json())
+  const upcoming = timetable
+    .filter(d => d.line === selectedLine && d.direction === selectedDirection)
+    .filter(d => {
+      const [h,m] = d.time.split(':').map(Number);
+      return h*60+m >= currentMinutes;
+    })
+    .slice(0,2);
+
+  upcoming.forEach(d => {
+    const row = document.createElement('tr');
+    row.innerHTML = `<td>${d.time}</td><td>${d.train}</td><td>${d.destination}</td>`;
+    tbody.appendChild(row);
+  });
+}
+
+// 駅・路線選択初期化
+function populateSelects(){
+  const stationSelect = document.getElementById('stationSelect');
+  stations.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.station;
+    opt.textContent = s.station;
+    stationSelect.appendChild(opt);
+  });
+  selectedStation = stations[0].station;
+  loadTimetable(selectedStation);
+}
+
+function populateLineSelect(){
+  const lineSelect = document.getElementById('lineSelect');
+  lineSelect.innerHTML = '';
+  const stationLines = stations.find(s => s.station === selectedStation).lines;
+  stationLines.forEach(l => {
+    const opt = document.createElement('option');
+    opt.value = l;
+    opt.textContent = l;
+    lineSelect.appendChild(opt);
+  });
+  selectedLine = stationLines[0];
+  updateTimetable();
+}
+
+// 駅選択時に timetable をロード
+function loadTimetable(stationName){
+  const stationData = stations.find(s => s.station === stationName);
+  fetch(stationData.timetable)
+    .then(r => r.json())
     .then(data => {
-      const tbody = document.querySelector('#timetable tbody');
-      tbody.innerHTML = '';
-      const currentMinutes = now.getHours() * 60 + now.getMinutes();
-
-      const upcoming = data
-        .filter(d => {
-          const [h, m] = d.time.split(':').map(Number);
-          return h*60 + m >= currentMinutes;
-        })
-        .slice(0,2); // 次の2本だけ表示
-
-      upcoming.forEach(d => {
-        const row = document.createElement('tr');
-        row.innerHTML = `<td>${d.time}</td><td>${d.train}</td><td>${d.destination}</td>`;
-        tbody.appendChild(row);
-      });
+      timetable = data;
+      populateLineSelect();
     });
 }
 
-// 初回表示
-updateTimetable();
-// 1秒ごとに更新（時刻表示用）
-setInterval(updateTimetable, 1000);
+// イベント
+document.getElementById('stationSelect').addEventListener('change', e => {
+  selectedStation = e.target.value;
+  loadTimetable(selectedStation);
+});
+
+document.getElementById('lineSelect').addEventListener('change', e => {
+  selectedLine = e.target.value;
+  updateTimetable();
+});
+
+document.getElementById('directionSelect').addEventListener('change', e => {
+  selectedDirection = e.target.value;
+  updateTimetable();
+});
+
+// データ取得
+fetch('_station_data/stations.json').then(r=>r.json()).then(data=>{
+  stations = data;
+  populateSelects();
+  updateTimetable();
+  setInterval(updateTimetable, 1000);
+});
 </script>
 </body>
 </html>

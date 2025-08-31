@@ -1,0 +1,17 @@
+[
+  {
+    "station": "東京",
+    "lines": ["A線","B線"],
+    "timetable": "timetable_data/JR_East/tokyo_timetable.json"
+  },
+  {
+    "station": "新宿",
+    "lines": ["A線","B線"],
+    "timetable": "timetable_data/JR_East/shinjuku_timetable.json"
+  },
+  {
+    "station": "横浜",
+    "lines": ["京急線"],
+    "timetable": "timetable_data/Keikyu_honsen/yokohama_timetable.json"
+  }
+]
