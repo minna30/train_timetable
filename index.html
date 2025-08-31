@@ -5,54 +5,54 @@
 <title>次の2本発車案内</title>
 <style>
   body {
-    background-color: #000; 
-    color: #fff;
-    font-family: 'Courier New', Courier, monospace;
+    background-color: #f0f0f0;
+    color: #333;
+    font-family: Arial, sans-serif;
     display: flex;
     justify-content: center;
-    align-items: center;
-    height: 100vh;
+    align-items: flex-start;
+    padding-top: 50px;
   }
-  .board {
-    background-color: #111;
+  .container {
+    background-color: #fff;
     padding: 20px;
-    border: 5px solid #222;
-    border-radius: 10px;
-    box-shadow: 0 0 30px #ff0000;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
     min-width: 400px;
-    text-align: center;
   }
   h1 {
-    font-size: 1.5em;
-    margin-bottom: 20px;
-    color: #ff0;
-    text-shadow: 0 0 5px #ff0, 0 0 10px #ff0;
+    text-align: center;
+    color: #ff4081;
+  }
+  #currentTime {
+    text-align: center;
+    font-size: 1.2em;
+    margin-bottom: 10px;
+    color: #555;
   }
   table {
     width: 100%;
     border-collapse: collapse;
+    margin-top: 10px;
   }
   th, td {
     padding: 10px;
     text-align: center;
-    font-size: 1.2em;
+    border: 1px solid #ddd;
   }
   th {
-    color: #0f0;
-    text-shadow: 0 0 5px #0f0;
+    background-color: #ff4081;
+    color: white;
   }
-  td {
-    color: #fff;
-    text-shadow: 0 0 2px #fff;
-  }
-  tr:nth-child(odd) td {
-    text-shadow: 0 0 5px #ff0;
+  tr:nth-child(even) {
+    background-color: #f9f9f9;
   }
 </style>
 </head>
 <body>
-<div class="board">
+<div class="container">
   <h1>次の2本発車案内</h1>
+  <div id="currentTime">現在時刻: --:--</div>
   <table id="timetable">
     <thead>
       <tr>
@@ -66,13 +66,23 @@
 </div>
 
 <script>
+function formatTime(date) {
+  const h = String(date.getHours()).padStart(2,'0');
+  const m = String(date.getMinutes()).padStart(2,'0');
+  const s = String(date.getSeconds()).padStart(2,'0');
+  return `${h}:${m}:${s}`;
+}
+
 function updateTimetable() {
+  // 現在時刻表示
+  const now = new Date();
+  document.getElementById('currentTime').textContent = '現在時刻: ' + formatTime(now);
+
   fetch('data/timetable.json')
     .then(res => res.json())
     .then(data => {
       const tbody = document.querySelector('#timetable tbody');
       tbody.innerHTML = '';
-      const now = new Date();
       const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
       const upcoming = data
@@ -92,8 +102,8 @@ function updateTimetable() {
 
 // 初回表示
 updateTimetable();
-// 1分ごとに更新
-setInterval(updateTimetable, 60000);
+// 1秒ごとに更新（時刻表示用）
+setInterval(updateTimetable, 1000);
 </script>
 </body>
 </html>
