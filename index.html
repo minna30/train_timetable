@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>次の2本発車案内</title>
+<style>
+  body { font-family: Arial; background: #f0f0f0; }
+  .container { max-width: 600px; margin: 50px auto; padding: 20px; background: white; border-radius: 10px; }
+  h1 { text-align: center; color: #ff4081; }
+  table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+  th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+  th { background-color: #ff4081; color: white; }
+  tr:nth-child(even) { background-color: #f9f9f9; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>次の2本発車案内</h1>
+  <table id="timetable">
+    <thead>
+      <tr>
+        <th>時間</th>
+        <th>列車</th>
+        <th>行き先</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<script>
+function updateTimetable() {
+  fetch('data/timetable.json')
+    .then(res => res.json())
+    .then(data => {
+      const tableBody = document.querySelector('#timetable tbody');
+      tableBody.innerHTML = '';
+      const now = new Date();
+      const currentMinutes = now.getHours()*60 + now.getMinutes();
+
+      // 発車済みを除く & 時刻順に並べる
+      const upcoming = data
+        .filter(d => {
+          const [h,m] = d.time.split(':').map(Number);
+          return h*60 + m >= currentMinutes;
+        })
+        .slice(0,2); // 次の2本だけ
+
+      upcoming.forEach(d => {
+        const row = document.createElement('tr');
+        row.innerHTML = `<td>${d.time}</td><td>${d.train}</td><td>${d.destination}</td>`;
+        tableBody.appendChild(row);
+      });
+    });
+}
+
+// 初回表示 & 1分ごとに更新
+updateTimetable();
+setInterval(updateTimetable, 60000);
+</script>
+</body>
+</html>
