@@ -120,7 +120,7 @@ document.getElementById('stationSelect').addEventListener('change', e=>{
 });
 
 // データ取得
-fetch('station_data/stations.json').then(r=>r.json()).then(data=>{
+fetch('timetable_data/Tokyu/tamagawa_timetable.json').then(r=>r.json()).then(data=>{
   stations = data;
   populateStationSelect();
   updateCurrentTime();
