@@ -119,7 +119,7 @@ document.getElementById('stationSelect').addEventListener('change', e=>{
   loadTimetable(selectedStation);
 });
 
-// データ取得
+// 駅一覧データ取得
 fetch('timetable_data/Tokyu/tamagawa_timetable.json').then(r=>r.json()).then(data=>{
   stations = data;
   populateStationSelect();

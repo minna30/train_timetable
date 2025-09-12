@@ -13,5 +13,10 @@
     "station": "横浜",
     "lines": ["京急線"],
     "timetable": "timetable_data/Keikyu_honsen/yokohama_timetable.json"
+  },
+  {
+    "station": "多摩川",
+    "lines": ["東急多摩川線"],
+    "timetable": "timetable_data/Tokyu/tamagawa_timetable.json"
   }
 ]
