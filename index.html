@@ -69,11 +69,15 @@ function renderTimetable(){
     const lineDiv = document.createElement('div');
     lineDiv.innerHTML = `<div class="line-title">${line}</div>`;
 
-    ['上り','下り'].forEach(direction => {
+    // ['上り','下り'].forEach(direction => {
+    const directions = [...new Set(timetable.filter(d => d.line === line).map(d => d.direction))];
+    directions.forEach(direction => {
       const filtered = timetable
         .filter(d => d.line === line && d.direction === direction)
         .filter(d => {
-          const [h,m] = d.time.split(':').map(Number);
+          const parts = d.time.split(':').map(Number);
+          const h = parts[0] || 0;
+          const m = parts[1] || 0;
           return h*60+m >= currentMinutes;
         })
         .slice(0,2); // 次の2本だけ
