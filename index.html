@@ -80,7 +80,7 @@ function renderTimetable(){
           const m = parts[1] || 0;
           return h*60+m >= currentMinutes;
         })
-        .slice(0,2); // 次の2本だけ
+        .slice(0,3); // 次の2本だけ
 
       if(filtered.length === 0) return; // 無ければ表示しない
 
