@@ -18,5 +18,10 @@
     "station": "多摩川",
     "lines": ["東急多摩川線", "東急東横線"],
     "timetable": "timetable_data/Tokyu/tamagawa_timetable.json"
+  },
+  {
+    "station": "沼部",
+    "lines": ["東急多摩川線"],
+    "timetable": "timetable_data/Tokyu/numabe_timetable.json"
   }
 ]
