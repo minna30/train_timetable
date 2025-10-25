@@ -21,7 +21,7 @@
   },
   {
     "station": "沼部",
-    "lines": ["東急多摩川線"],
+    "lines": ["東急多摩川線","JR京浜東北線・根岸線"],
     "timetable": "timetable_data/Tokyu/numabe_timetable.json"
   }
 ]
